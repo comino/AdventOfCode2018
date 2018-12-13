@@ -22,13 +22,13 @@ vector<string> readInputFile(const string fileName){
 /** @description convert string array into a int array */
 vector<int64_t> convertSringArrayToIntArray(const vector<string> stringArray){
   auto returnArray = vector<int64_t>();
-  for( auto &s : stringArray){
+  for(auto &s : stringArray){
     returnArray.push_back( std::stoi(s));
   }
   return returnArray;
 };
 
-int64_t solutionChallange01(){
+int64_t solutionPart1(){
   const auto frequencies = convertSringArrayToIntArray(readInputFile("input.txt"));
   return [&]() -> int64_t {
     int64_t sum = 0;
@@ -37,8 +37,31 @@ int64_t solutionChallange01(){
   }();
 }
 
+int64_t solutionPart2(){
+  const auto frequencies = convertSringArrayToIntArray(readInputFile("input.txt"));
+  auto frequencyHistory = vector<int64_t>();
+  frequencyHistory.reserve(200000);
+  bool foundDoubleEntry = false; 
+  int64_t currentSum = 0;
+  uint64_t count = 0;
+
+  while(!foundDoubleEntry){
+    for(auto &f: frequencies){ 
+      currentSum += f;
+      if( std::find( frequencyHistory.begin(), frequencyHistory.end(), currentSum )
+          != frequencyHistory.end() ){
+        foundDoubleEntry = true;
+        break; 
+      }else{
+        frequencyHistory.push_back(currentSum);
+      }
+    }
+  }
+  return currentSum;
+}
+
 int main(){
-  auto solution = solutionChallange01();
-  std::cout << "Solution: " <<  solution << "\n";
+  std::cout << "Solution Part 1: " <<  solutionPart1() << "\n";
+  std::cout << "Solution Part 2: " <<  solutionPart2() << "\n";
 }
 
