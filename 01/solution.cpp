@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-
 using std::string; 
 using std::vector;
 
@@ -30,34 +29,27 @@ vector<int64_t> convertSringArrayToIntArray(const vector<string> stringArray){
 
 int64_t solutionPart1(){
   const auto frequencies = convertSringArrayToIntArray(readInputFile("input.txt"));
-  return [&]() -> int64_t {
-    int64_t sum = 0;
-    for(auto &f: frequencies){ sum += f; }
-    return sum;
-  }();
+  int64_t sum = 0;
+  for(auto &f: frequencies){ sum += f; }
+  return sum;
 }
 
 int64_t solutionPart2(){
   const auto frequencies = convertSringArrayToIntArray(readInputFile("input.txt"));
   auto frequencyHistory = vector<int64_t>();
   frequencyHistory.reserve(200000);
-  bool foundDoubleEntry = false; 
   int64_t currentSum = 0;
-  uint64_t count = 0;
 
-  while(!foundDoubleEntry){
+  while(true){
     for(auto &f: frequencies){ 
       currentSum += f;
       if( std::find( frequencyHistory.begin(), frequencyHistory.end(), currentSum )
           != frequencyHistory.end() ){
-        foundDoubleEntry = true;
-        break; 
-      }else{
-        frequencyHistory.push_back(currentSum);
+        return currentSum; 
       }
+      frequencyHistory.push_back(currentSum);
     }
   }
-  return currentSum;
 }
 
 int main(){
