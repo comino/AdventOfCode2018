@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <style>
+      body {
+        background-color: #dddddd;
+        color: #222222;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>AventOfCode 2018</h2>
+      <h3>Day 4, Part 1</h3>
+      <div class="well" id="input"></div>
+    <div>
+  </body>
+  <script>
+
+    async function loadContent(){
+      return new Promise((res, rej) => {
+        $.get("/input.txt", payload => {
+          const entries = payload
+            .split('\n')
+            .filter(s => s.length > 0);
+          res(entries);
+        });
+      });
+    };
+
+    async function getSortedContent(){
+      let data = (await loadContent()).map(e => {
+        [ts,str] = e.split("] ");
+        return {date: new Date(ts.split("[")[1]), str: str };
+      })
+      data.sort((a,b) => a.date - b.date);
+      let curentGuard;
+      data = data.map(e => {
+        const guardLogin = e.str.match(/\d+/g);
+        let cmd;
+        if(guardLogin){
+          currentGuard = guardLogin[0];
+          cmd = 0;
+        }else if(e.str.match(/asleep/)){
+          cmd = 1;
+        }else if(e.str.match(/wakes/)){
+          cmd = 2; 
+        }else{
+          throw new Error("invalid log entry");
+        }
+        return {...e, ...{guard: currentGuard}, ...{cmd: cmd} };
+      });
+      return data;
+    }
+
+    async function solutionPart1(){
+      let logs = await getSortedContent(); 
+      let listOfGuards = logs.reduce( (acc, cur) => {
+        if( !acc || !acc.find(e => e == cur.guard )){
+          acc.push(cur.guard);
+        }
+        return acc;
+      }, [] );
+
+      let data = listOfGuards.map( guard => {
+        let calc = logs
+          .filter( log => log.guard === guard )
+          .reduce( (acc, cur) => {
+            if(cur.cmd ===1){
+              acc.sleepStartedAt = cur.ts;
+            } else if(cur.cmd ===2){
+              console.log(cur.tx, acc.sleepStartedAt);
+              acc.sum += (cur.ts - acc.sleepStartedAt);
+            }
+            return acc;
+          }, {sum:0, sleepStarted:0}); 
+        console.log(calc);
+      
+      });
+    };
+
+    solutionPart1();
+  </script>
+</html>
+
+
+
+

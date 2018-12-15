@@ -4,7 +4,6 @@ const INPUT_FILE = "input.txt";
 const MIN_COUNT_APPEARANCES = 2;
 const MAX_COUNT_APPEARANCES = 3; 
 
-
 function getFileContent(fileName) {
   return fs.readFileSync(fileName);
 }
