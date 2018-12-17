@@ -9,6 +9,7 @@ The goal is to have fun - some solution might be ridiculuts ;).
 - 01: C++
 - 02: Javascript (Nodejs)
 - 03: Python
-- 04: HTML, Javascript, jQuery(Browser)
+- 04: HTML, Javascript, jQuery (runs in Browser)
 - 05: TypeScript (Deno, the Node successor)
+- 06: C++, OOP
 
