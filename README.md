@@ -12,4 +12,5 @@ The goal is to have fun - some solution might be ridiculuts ;).
 - 04: HTML, Javascript, jQuery (runs in Browser)
 - 05: TypeScript (Deno, the Node successor)
 - 06: C++, OOP
+- 07: Python, yea again
 
