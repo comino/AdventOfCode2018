@@ -4,16 +4,22 @@
 #include <memory>
 #include <cstdlib>
 #include <algorithm>
+#include "./functional/functional.h"
 
 using std::string; 
 using std::vector;
 using std::pair;
 using std::unique_ptr;
 using std::make_unique;
+using std::cout;
 
+//#define EXAMPLE_INPUT
+#ifdef EXAMPLE_INPUT
 static const string INPUT = "exampleInput.txt";
+#else
+static const string INPUT = "input.txt";
+#endif
 
-/** @description reads the selected file into a std::vector<string> */
 vector<string> readInputFile(const string fileName){
   auto inputFile = std::ifstream(fileName);
   auto line = string();
@@ -35,48 +41,81 @@ vector<pair<char, char>> getNodeEntries(){
   return returnVec;
 };
 
-
 class Node {
   public: 
     Node(const char c):id(c){};
-    vector<unique_ptr<Node>> next;
+    vector<Node*> next;
     vector<Node*> prev;
-    char id; 
+    const char id; 
 
+    int getRequired(){
+      return ELI::reduce(prev, [](int acc, auto &b){ return !b->used? ++acc : acc;}, 0);
+    };
+    void setUsed(){
+      this->used = true;
+    };
+    bool used = false;
+};
+
+class NodeTree {
+  public:
     Node* find(const char c){
-      if(id==c){ 
-        return this;
-      }else{
-        for( auto &n : next){
-          const auto res = n->find(c);
-          if(res){
-            return res;
-          }
-        }
-        return nullptr;
+      for( auto &node : nodes){
+        if( node->id == c) return node.get();
       }
-    }
+      return nullptr;
+    };
 
     Node* add(const pair<char,char> n){
       auto fromNode = find(n.first);
       auto toNode = find(n.second);
       if(!fromNode){
-        fromNode = 
-        next.push_back(make_unique<Node>(n.first));
+        nodes.push_back(make_unique<Node>(n.first));
         fromNode = find(n.first);
       }
-      if(!toNode){
-        fromNode->add(n);
-      }else{
-        fromNode->next.push_back(n);
+      if(!toNode){ 
+        nodes.push_back(make_unique<Node>(n.second));
+        toNode = find(n.second);
       }
+      fromNode->next.push_back(toNode);
+      toNode->prev.push_back(fromNode);
+    };
+
+    auto getUnused(){
+      return ELI::filter(getNodes(),[](auto n){return !n->used;});
     }
+    auto getUnusedAndNoRequired(){
+      return ELI::filter(getNodes(),[](auto n){return !n->used && !n->getRequired();});
+    }
+
+    std::vector<Node*> getNodes(){
+      return ELI::map(nodes, [](const auto &v){ return v.get();});
+    }
+
+    void setUsed(char c){
+      find(c)->setUsed();
+    }
+
+  private:
+    vector<unique_ptr<Node>> nodes = {};
 };
 
 
-int64_t solutionPart1(){
+string solutionPart1(){
+  auto tree = NodeTree();
   auto nodes = getNodeEntries();
-  return 1;
+  for( auto &node : nodes){
+    tree.add(node);
+  }
+  
+  string solution = "";
+  while( tree.getUnused().size()){
+    const auto candidates = tree.getUnusedAndNoRequired();
+    const auto nextNode = ELI::reduce(candidates, [](auto a, auto b){ return a && (a)->id <= (b)->id ? a : b; }, candidates[0] );
+    tree.setUsed(nextNode->id);
+    solution += nextNode->id;
+  }
+  return solution;
 }
 
 int64_t solutionPart2(){
@@ -91,4 +130,5 @@ int main(){
   auto sol2 = solutionPart2();
   std::cout << "Solution Part 2: " <<  sol2 << "\n";
 }
+
 
