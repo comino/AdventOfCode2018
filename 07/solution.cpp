@@ -16,8 +16,12 @@ using std::cout;
 //#define EXAMPLE_INPUT
 #ifdef EXAMPLE_INPUT
 static const string INPUT = "exampleInput.txt";
+static const int numWorker = 2;
+static const int charToIntConversion = 64;
 #else
 static const string INPUT = "input.txt";
+static const int numWorker = 5;
+static const int charToIntConversion = 4;
 #endif
 
 vector<string> readInputFile(const string fileName){
@@ -54,7 +58,14 @@ class Node {
     void setUsed(){
       this->used = true;
     };
+    void setRunning(){
+      this->running = true;
+    }
+    bool isRunning(){
+      return running;
+    }
     bool used = false;
+    bool running = false;
 };
 
 class NodeTree {
@@ -88,6 +99,10 @@ class NodeTree {
       return ELI::filter(getNodes(),[](auto n){return !n->used && !n->getRequired();});
     }
 
+    auto getUnusedNoRequiredAndNotRunning(){
+      return ELI::filter(getNodes(),[](auto n){return !n->used && !n->getRequired() && !n->isRunning();});
+    }
+
     std::vector<Node*> getNodes(){
       return ELI::map(nodes, [](const auto &v){ return v.get();});
     }
@@ -107,7 +122,6 @@ string solutionPart1(){
   for( auto &node : nodes){
     tree.add(node);
   }
-  
   string solution = "";
   while( tree.getUnused().size()){
     const auto candidates = tree.getUnusedAndNoRequired();
@@ -118,9 +132,43 @@ string solutionPart1(){
   return solution;
 }
 
-int64_t solutionPart2(){
+int solutionPart2(){
+
+  vector<pair<int, Node*>> allWorkerBusyStatus(numWorker, std::make_pair(0, nullptr) );
+  auto tree = NodeTree();
   auto nodes = getNodeEntries();
-  return 2;
+  for( auto &node : nodes){
+    tree.add(node);
+  }
+
+  int count = 0;
+  while(tree.getUnused().size()){
+    count++;
+    // process start of second
+    for(auto &workerBusy: allWorkerBusyStatus){
+      if(workerBusy.first == 0){ // non busy worker
+        const auto readyToProcess = tree.getUnusedNoRequiredAndNotRunning();
+        if(readyToProcess.size()){ // assign available task
+          auto firstInAlphabet = [](auto a, auto b){ return a && (a)->id <= (b)->id ? a : b; } ;
+          const auto nextNode = ELI::reduce(readyToProcess, firstInAlphabet, readyToProcess[0] );
+          nextNode->setRunning();
+          workerBusy.second = nextNode;
+          workerBusy.first = ((int)(nextNode->id))-charToIntConversion;
+        }
+      }
+    }
+    // process end of second
+    for(auto &workerBusy: allWorkerBusyStatus){
+      if(workerBusy.first == 1 ){ // job done in next tick
+        tree.setUsed(workerBusy.second->id);
+        workerBusy.first = 0;
+        workerBusy.second = nullptr;
+      } else if(workerBusy.first > 0){ // tick
+        --workerBusy.first;
+      }
+    }
+  }
+  return count;
 }
 
 int main(){
